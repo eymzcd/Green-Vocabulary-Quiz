@@ -207,7 +207,30 @@ function startGame(m) {
     mode = m;
     questionPool = [...MASTER_QUESTIONS].sort(() => Math.random() - 0.5);
     transition('mode-screen', 'game-ui');
-    timerInterval = setInterval(() => { totalSec++; document.getElementById('timer').textContent = totalSec + 's'; }, 1000);
+    
+    if(mode === 'timed') {
+        totalSec = 15; // Zamana karşı 15 sn başlar
+    } else {
+        totalSec = 0; // Serbest mod 0'dan başlar
+    }
+    
+    document.getElementById('timer').textContent = totalSec + 's';
+    
+    timerInterval = setInterval(() => {
+        if(mode === 'timed') {
+            totalSec--;
+            if(totalSec <= 0) {
+                totalSec = 0;
+                document.getElementById('timer').textContent = '0s';
+                end();
+                return;
+            }
+        } else {
+            totalSec++;
+        }
+        document.getElementById('timer').textContent = totalSec + 's';
+    }, 1000);
+    
     loadQ();
 }
 
@@ -244,7 +267,7 @@ function loadQ() {
 function end() {
     clearInterval(timerInterval);
     transition('game-ui', 'end-screen');
-    document.getElementById('f-time').textContent = totalSec + 's';
+    document.getElementById('f-time').textContent = (mode === 'timed' ? (15 - totalSec) : totalSec) + 's';
     document.getElementById('f-correct').textContent = stats.c;
     document.getElementById('f-wrong').textContent = stats.w;
     const ratio = Math.round((stats.c / (stats.c + stats.w)) * 100) || 0;
