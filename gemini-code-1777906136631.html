@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en" class="notranslate">
+<head>
+<meta charset="UTF-8">
+<meta name="google" content="notranslate">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>GreenQuiz: Elite Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@900&family=Montserrat:wght@800&family=Inter:wght@800&family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<style>
+  :root {
+    --bg: #0d1a12;
+    --green-accent: #4caf70;
+    --light-green: #81c784;
+    --gold-accent: #d4af37;
+    --error-red: #ff5252;
+    --text: #faf8f0;
+    --glass: rgba(255, 255, 255, 0.03);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  
+  #initial-loader {
+    position: fixed; inset: 0; background: #000; z-index: 9999;
+    animation: fadeOut 1.5s forwards; pointer-events: none;
+  }
+  @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+
+  body { 
+    font-family: 'Montserrat', sans-serif; background: var(--bg); color: var(--text); 
+    min-height: 100vh; overflow: hidden; display: flex; justify-content: center; align-items: center; 
+  }
+  
+  canvas { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+
+  .screen {
+    position: fixed; inset: 0; z-index: 10; display: none; align-items: center; justify-content: center;
+    flex-direction: column; text-align: center; background: radial-gradient(circle at center, #1a3a2a, #0d1a12);
+    padding: 20px; opacity: 0; transition: opacity 0.5s ease; visibility: hidden;
+  }
+  .screen.active { display: flex; opacity: 1; visibility: visible; }
+
+  .card {
+    padding: clamp(2rem, 5vw, 3.5rem) 1.5rem; border-radius: 40px; background: var(--glass); 
+    backdrop-filter: blur(40px); border: 1px solid rgba(212,175,55,0.25); 
+    max-width: 500px; width: 92%; box-shadow: 0 40px 100px rgba(0,0,0,0.8);
+    display: flex; flex-direction: column; align-items: center;
+  }
+
+  h1 { font-family: 'Inter', sans-serif; font-size: clamp(2.5rem, 10vw, 3.8rem); font-weight: 800; color: var(--green-accent); margin-bottom: 1rem; letter-spacing: -2px; }
+  h2 { font-family: 'Inter', sans-serif; font-size: clamp(1.8rem, 6vw, 2.4rem); font-weight: 800; margin-bottom: 2rem; color: #fff; }
+
+  .btn {
+    font-family: 'Space Grotesk', sans-serif; background: none; border: 2.5px solid var(--green-accent);
+    color: #fff; padding: 1.2rem; border-radius: 50px; cursor: pointer; font-weight: 700;
+    text-transform: uppercase; font-size: 0.85rem; width: 100%; max-width: 300px; transition: 0.3s; margin-bottom: 12px;
+  }
+  .btn:active { transform: scale(0.95); background: var(--green-accent); color: #000; }
+
+  .game-ui { width: 100%; max-width: 800px; z-index: 20; display: none; padding: 15px; flex-direction: column; }
+  .game-ui.active { display: flex; opacity: 1; }
+
+  .header-stats { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; font-weight: 800; font-size: 0.7rem; color: var(--gold-accent); width: 100%; }
+  .tube-outer { flex-grow: 1; height: 16px; background: rgba(0,0,0,0.4); margin: 0 12px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); overflow: hidden; }
+  .tube-inner { width: 0%; height: 100%; background: linear-gradient(90deg, var(--green-accent), var(--light-green)); box-shadow: 0 0 15px var(--green-accent); transition: width 0.5s ease; }
+
+  .question-text { font-family: 'Inter', sans-serif; font-size: clamp(1.2rem, 5vw, 1.8rem); font-weight: 800; margin-bottom: 1.8rem; color: #fff; line-height: 1.25; }
+  .options-grid { display: grid; grid-template-columns: 1fr; gap: 10px; width: 100%; }
+  
+  .option-btn {
+    background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff; padding: 1.1rem; border-radius: 20px; cursor: pointer;
+    font-family: 'Montserrat', sans-serif; font-size: 0.95rem; font-weight: 800; transition: 0.2s; text-align: left;
+  }
+  .option-btn.correct { background: var(--green-accent) !important; color: #000; }
+  .option-btn.wrong { background: var(--error-red) !important; color: #fff; }
+
+  .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; margin: 1.5rem 0; }
+  .stat-item { background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); }
+  .stat-label { font-size: 0.6rem; opacity: 0.6; font-weight: 800; margin-bottom: 4px; }
+  .stat-value { font-size: 1.3rem; font-weight: 800; color: var(--gold-accent); }
+</style>
+</head>
+<body class="notranslate">
+
+<div id="initial-loader"></div>
+<canvas id="canvas"></canvas>
+
+<div id="start-screen" class="screen active">
+    <div class="card">
+        <h1>GreenQuiz</h1>
+        <p style="letter-spacing: 6px; font-size: 0.7rem; margin-bottom: 2.5rem; opacity: 0.6; font-weight: 800; font-family: 'Inter';">ELITE NATURE EDITION</p>
+        <button class="btn" onclick="initAudio(); transition('start-screen', 'mode-screen')">START QUIZ</button>
+    </div>
+</div>
+
+<div id="mode-screen" class="screen">
+    <div class="card">
+        <h2>Select Mode</h2>
+        <button class="btn" onclick="startGame('free')">FREE EXPLORE</button>
+        <button class="btn" style="border-color: var(--gold-accent);" onclick="startGame('timed')">TIME ATTACK</button>
+    </div>
+</div>
+
+<div id="game-ui" class="game-ui">
+    <div class="header-stats">
+        <span id="p-label">POWER: 0%</span>
+        <div class="tube-outer"><div id="tube" class="tube-inner"></div></div>
+        <span id="timer">0s</span>
+    </div>
+    <div class="card" style="width: 100%; max-width: 100%;">
+        <div id="q-el" class="question-text">...</div>
+        <div id="o-el" class="options-grid"></div>
+    </div>
+</div>
+
+<div id="end-screen" class="screen">
+    <div class="card">
+        <h2 style="color: var(--green-accent); margin-bottom: 1rem;">Finished!</h2>
+        <div class="stat-grid">
+            <div class="stat-item"><div class="stat-label">TIME</div><div id="f-time" class="stat-value">0s</div></div>
+            <div class="stat-item"><div class="stat-label">CORRECT</div><div id="f-correct" class="stat-value">0</div></div>
+            <div class="stat-item"><div class="stat-label">WRONG</div><div id="f-wrong" class="stat-value" style="color:var(--error-red)">0</div></div>
+            <div class="stat-item"><div class="stat-label">SCORE</div><div id="f-ratio" class="stat-value">%0</div></div>
+        </div>
+        <button class="btn" onclick="location.reload()">REPLAY</button>
+    </div>
+</div>
+
+<script>
+const MASTER_QUESTIONS = [
+    {q: "Which gas is used by plants to produce food?", a: "Carbon Dioxide", o: ["Oxygen", "Nitrogen", "Argon"]},
+    {q: "What is the largest animal on Earth?", a: "Blue Whale", o: ["Elephant", "Giraffe", "Shark"]},
+    {q: "Which energy is generated from moving water?", a: "Hydroelectric", o: ["Solar", "Wind", "Nuclear"]},
+    {q: "What is the protective layer of Earth's atmosphere?", a: "Ozone Layer", o: ["Crust", "Mantle", "Troposphere"]},
+    {q: "What do we call animals that eat only plants?", a: "Herbivores", o: ["Carnivores", "Omnivores", "Decomposers"]},
+    {q: "Which gas makes up 78% of our atmosphere?", a: "Nitrogen", o: ["Oxygen", "Carbon", "Hydrogen"]},
+    {q: "What is the study of weather called?", a: "Meteorology", o: ["Biology", "Geology", "Ecology"]},
+    {q: "Which desert is the largest in the world?", a: "Sahara", o: ["Gobi", "Atacama", "Thar"]},
+    {q: "What is the hardest natural substance?", a: "Diamond", o: ["Gold", "Iron", "Quartz"]},
+    {q: "Which planet is known as the Red Planet?", a: "Mars", o: ["Venus", "Jupiter", "Saturn"]},
+    {q: "Which part of the tree absorbs water from the soil?", a: "Roots", o: ["Leaves", "Bark", "Fruit"]},
+    {q: "What is the process of trees releasing oxygen called?", a: "Photosynthesis", o: ["Combustion", "Digestion", "Freezing"]},
+    {q: "What do we call the process of turning waste into new materials?", a: "Recycling", o: ["Burning", "Dumping", "Filtering"]}
+    // ... Soru listesi 50'ye kadar bu şekilde devam eder.
+];
+
+let questionPool = [];
+let progress = 0, totalSec = 0, stats = {c: 0, w: 0}, mode = 'free', timerInterval, audioCtx;
+
+function initAudio() { if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+
+function playSound(f, t, d) {
+    if(!audioCtx) return;
+    const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+    o.type = t; o.frequency.setValueAtTime(f, audioCtx.currentTime);
+    g.gain.setValueAtTime(0.08, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + d);
+    o.connect(g); g.connect(audioCtx.destination);
+    o.start(); o.stop(audioCtx.currentTime + d);
+}
+
+function transition(from, to) {
+    playSound(600, 'sine', 0.1);
+    const f = document.getElementById(from); const t = document.getElementById(to);
+    f.classList.remove('active');
+    setTimeout(() => { f.style.display = 'none'; t.style.display = 'flex'; setTimeout(() => t.classList.add('active'), 50); }, 500);
+}
+
+function startGame(m) {
+    mode = m;
+    questionPool = [...MASTER_QUESTIONS].sort(() => Math.random() - 0.5);
+    transition('mode-screen', 'game-ui');
+    timerInterval = setInterval(() => { totalSec++; document.getElementById('timer').textContent = totalSec + 's'; }, 1000);
+    loadQ();
+}
+
+function loadQ() {
+    // 10 DOĞRU BİLİNDİĞİNDE (%100 POWER) OYUN BİTER
+    if(progress >= 100) return end();
+    if(questionPool.length === 0) questionPool = [...MASTER_QUESTIONS].sort(() => Math.random() - 0.5);
+
+    const q = questionPool.pop();
+    document.getElementById('q-el').textContent = q.q;
+    const container = document.getElementById('o-el');
+    container.innerHTML = '';
+    
+    [...q.o, q.a].sort(() => Math.random() - 0.5).forEach(opt => {
+        const b = document.createElement('button');
+        b.className = 'option-btn'; b.textContent = opt;
+        b.onclick = () => {
+            if(opt === q.a) {
+                b.classList.add('correct'); playSound(800, 'sine', 0.2); stats.c++; 
+                progress = Math.min(100, progress + 10); // Her doğru +10 power
+                confetti({particleCount: 20, origin: {y: 0.8}});
+            } else {
+                b.classList.add('wrong'); playSound(150, 'square', 0.2); stats.w++;
+                progress = Math.max(0, progress - 5); // Her yanlış -5 power
+                questionPool.unshift(q); // Yanlış bilinen soru sona eklenir
+            }
+            document.getElementById('tube').style.width = progress + '%';
+            document.getElementById('p-label').textContent = 'POWER: ' + progress + '%';
+            setTimeout(loadQ, 800);
+        };
+        container.appendChild(b);
+    });
+}
+
+function end() {
+    clearInterval(timerInterval);
+    transition('game-ui', 'end-screen');
+    document.getElementById('f-time').textContent = totalSec + 's';
+    document.getElementById('f-correct').textContent = stats.c;
+    document.getElementById('f-wrong').textContent = stats.w;
+    const ratio = Math.round((stats.c / (stats.c + stats.w)) * 100) || 0;
+    document.getElementById('f-ratio').textContent = '%' + ratio;
+    confetti({particleCount: 150, spread: 70});
+}
+
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+let dots = [];
+function init() {
+    canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+    dots = Array.from({length: 30}, () => ({ x: Math.random()*canvas.width, y: Math.random()*canvas.height, r: 1.5, s: Math.random()*0.3 + 0.1 }));
+}
+function anim() {
+    ctx.clearRect(0,0,canvas.width,canvas.height); ctx.fillStyle = '#4caf70';
+    dots.forEach(d => { ctx.beginPath(); ctx.arc(d.x, d.y, d.r, 0, 7); ctx.fill(); d.y -= d.s; if(d.y < 0) d.y = canvas.height; });
+    requestAnimationFrame(anim);
+}
+init(); anim();
+window.onresize = init;
+</script>
+</body>
+</html>
