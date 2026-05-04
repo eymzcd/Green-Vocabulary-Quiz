@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="google" content="notranslate">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>GreenQuiz: Elite Pro</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@900&family=Montserrat:wght@800&family=Inter:wght@800&family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
+<title>GreenQuiz: Quiz</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@800&family=Inter:wght@800&family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 <style>
   :root {
@@ -81,7 +81,7 @@
   .stat-value { font-size: 1.3rem; font-weight: 800; color: var(--gold-accent); }
 </style>
 </head>
-<body class="notranslate">
+<body>
 
 <div id="initial-loader"></div>
 <canvas id="canvas"></canvas>
@@ -89,7 +89,7 @@
 <div id="start-screen" class="screen active">
     <div class="card">
         <h1>GreenQuiz</h1>
-        <p style="letter-spacing: 6px; font-size: 0.7rem; margin-bottom: 2.5rem; opacity: 0.6; font-weight: 800; font-family: 'Inter';">ELITE NATURE EDITION</p>
+        <p style="letter-spacing: 6px; font-size: 0.7rem; margin-bottom: 2.5rem; opacity: 0.6; font-weight: 800; font-family: 'Inter';">QUİZ GAME</p>
         <button class="btn" onclick="initAudio(); transition('start-screen', 'mode-screen')">START QUIZ</button>
     </div>
 </div>
@@ -129,20 +129,56 @@
 
 <script>
 const MASTER_QUESTIONS = [
-    {q: "Which gas is used by plants to produce food?", a: "Carbon Dioxide", o: ["Oxygen", "Nitrogen", "Argon"]},
-    {q: "What is the largest animal on Earth?", a: "Blue Whale", o: ["Elephant", "Giraffe", "Shark"]},
+    {q: "Which gas is used by plants for photosynthesis?", a: "Carbon Dioxide", o: ["Oxygen", "Nitrogen", "Argon"]},
+    {q: "What is the largest mammal on Earth?", a: "Blue Whale", o: ["Elephant", "Giraffe", "Shark"]},
     {q: "Which energy is generated from moving water?", a: "Hydroelectric", o: ["Solar", "Wind", "Nuclear"]},
-    {q: "What is the protective layer of Earth's atmosphere?", a: "Ozone Layer", o: ["Crust", "Mantle", "Troposphere"]},
+    {q: "What layer protects Earth from UV rays?", a: "Ozone Layer", o: ["Crust", "Mantle", "Troposphere"]},
     {q: "What do we call animals that eat only plants?", a: "Herbivores", o: ["Carnivores", "Omnivores", "Decomposers"]},
     {q: "Which gas makes up 78% of our atmosphere?", a: "Nitrogen", o: ["Oxygen", "Carbon", "Hydrogen"]},
     {q: "What is the study of weather called?", a: "Meteorology", o: ["Biology", "Geology", "Ecology"]},
     {q: "Which desert is the largest in the world?", a: "Sahara", o: ["Gobi", "Atacama", "Thar"]},
     {q: "What is the hardest natural substance?", a: "Diamond", o: ["Gold", "Iron", "Quartz"]},
     {q: "Which planet is known as the Red Planet?", a: "Mars", o: ["Venus", "Jupiter", "Saturn"]},
-    {q: "Which part of the tree absorbs water from the soil?", a: "Roots", o: ["Leaves", "Bark", "Fruit"]},
-    {q: "What is the process of trees releasing oxygen called?", a: "Photosynthesis", o: ["Combustion", "Digestion", "Freezing"]},
-    {q: "What do we call the process of turning waste into new materials?", a: "Recycling", o: ["Burning", "Dumping", "Filtering"]}
-    // ... Soru listesi 50'ye kadar bu şekilde devam eder.
+    {q: "Which part of the tree absorbs water?", a: "Roots", o: ["Leaves", "Bark", "Fruit"]},
+    {q: "Which process do trees use to release oxygen?", a: "Photosynthesis", o: ["Combustion", "Digestion", "Freezing"]},
+    {q: "Turning waste into new materials is called?", a: "Recycling", o: ["Burning", "Dumping", "Filtering"]},
+    {q: "Which is the tallest tree species?", a: "Redwood", o: ["Oak", "Pine", "Maple"]},
+    {q: "What is the main source of energy for Earth?", a: "The Sun", o: ["The Moon", "Volcanoes", "Wind"]},
+    {q: "Which ocean is the deepest?", a: "Pacific", o: ["Atlantic", "Indian", "Arctic"]},
+    {q: "How many legs does a spider have?", a: "8", o: ["6", "10", "12"]},
+    {q: "Which animal is the fastest on land?", a: "Cheetah", o: ["Lion", "Horse", "Eagle"]},
+    {q: "What do bees collect from flowers?", a: "Nectar", o: ["Water", "Leaves", "Seeds"]},
+    {q: "Which gas do humans breathe out?", a: "Carbon Dioxide", o: ["Oxygen", "Nitrogen", "Helium"]},
+    {q: "What is the frozen form of water?", a: "Ice", o: ["Steam", "Cloud", "Rain"]},
+    {q: "Which planet is closest to the Sun?", a: "Mercury", o: ["Venus", "Earth", "Mars"]},
+    {q: "How many colors are in a rainbow?", a: "7", o: ["6", "8", "5"]},
+    {q: "Which continent is the coldest?", a: "Antarctica", o: ["Asia", "Europe", "North America"]},
+    {q: "What is the center of an atom called?", a: "Nucleus", o: ["Electron", "Proton", "Neutron"]},
+    {q: "Which metal is liquid at room temperature?", a: "Mercury", o: ["Gold", "Silver", "Iron"]},
+    {q: "What is the chemical symbol for water?", a: "H2O", o: ["CO2", "O2", "NaCl"]},
+    {q: "Which animal lives both on land and water?", a: "Amphibian", o: ["Mammal", "Reptile", "Bird"]},
+    {q: "What is the largest planet in our solar system?", a: "Jupiter", o: ["Saturn", "Neptune", "Uranus"]},
+    {q: "Which force pulls objects toward Earth?", a: "Gravity", o: ["Magnetism", "Friction", "Inertia"]},
+    {q: "What do we call a scientist who studies stars?", a: "Astronomer", o: ["Biologist", "Chemist", "Physicist"]},
+    {q: "Which bird cannot fly?", a: "Ostrich", o: ["Eagle", "Parrot", "Sparrow"]},
+    {q: "What is the hottest planet?", a: "Venus", o: ["Mercury", "Mars", "Jupiter"]},
+    {q: "Which gas is used in balloons to make them fly?", a: "Helium", o: ["Oxygen", "Nitrogen", "Carbon"]},
+    {q: "What is the process of water turning into vapor?", a: "Evaporation", o: ["Condensation", "Freezing", "Melting"]},
+    {q: "Which animal is known as the King of the Jungle?", a: "Lion", o: ["Tiger", "Elephant", "Bear"]},
+    {q: "How many months have 31 days?", a: "7", o: ["6", "5", "8"]},
+    {q: "What is the smallest continent?", a: "Australia", o: ["Europe", "South America", "Africa"]},
+    {q: "Which instrument measures temperature?", a: "Thermometer", o: ["Barometer", "Compass", "Clock"]},
+    {q: "What is the outer layer of the Earth called?", a: "Crust", o: ["Core", "Mantle", "Atmosphere"]},
+    {q: "Which gas do plants release during the day?", a: "Oxygen", o: ["Carbon Dioxide", "Nitrogen", "Hydrogen"]},
+    {q: "What is the natural satellite of Earth?", a: "The Moon", o: ["The Sun", "Mars", "Venus"]},
+    {q: "Which large cat has stripes?", a: "Tiger", o: ["Lion", "Leopard", "Jaguar"]},
+    {q: "What is the primary color of emeralds?", a: "Green", o: ["Red", "Blue", "Yellow"]},
+    {q: "Which element does 'O' represent in chemistry?", a: "Oxygen", o: ["Gold", "Silver", "Iron"]},
+    {q: "What is the tallest mountain in the world?", a: "Mount Everest", o: ["K2", "Mont Blanc", "Kilimanjaro"]},
+    {q: "Which organ pumps blood in the human body?", a: "Heart", o: ["Lungs", "Brain", "Liver"]},
+    {q: "What is the largest country by land area?", a: "Russia", o: ["Canada", "China", "USA"]},
+    {q: "Which season comes after Autumn?", a: "Winter", o: ["Spring", "Summer", "Monsoon"]},
+    {q: "What is a group of lions called?", a: "A Pride", o: ["A Pack", "A Herd", "A School"]}
 ];
 
 let questionPool = [];
@@ -176,7 +212,6 @@ function startGame(m) {
 }
 
 function loadQ() {
-    // 10 DOĞRU BİLİNDİĞİNDE (%100 POWER) OYUN BİTER
     if(progress >= 100) return end();
     if(questionPool.length === 0) questionPool = [...MASTER_QUESTIONS].sort(() => Math.random() - 0.5);
 
@@ -191,12 +226,12 @@ function loadQ() {
         b.onclick = () => {
             if(opt === q.a) {
                 b.classList.add('correct'); playSound(800, 'sine', 0.2); stats.c++; 
-                progress = Math.min(100, progress + 10); // Her doğru +10 power
+                progress = Math.min(100, progress + 10);
                 confetti({particleCount: 20, origin: {y: 0.8}});
             } else {
                 b.classList.add('wrong'); playSound(150, 'square', 0.2); stats.w++;
-                progress = Math.max(0, progress - 5); // Her yanlış -5 power
-                questionPool.unshift(q); // Yanlış bilinen soru sona eklenir
+                progress = Math.max(0, progress - 5);
+                questionPool.unshift(q);
             }
             document.getElementById('tube').style.width = progress + '%';
             document.getElementById('p-label').textContent = 'POWER: ' + progress + '%';
