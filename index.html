@@ -183,6 +183,8 @@ const MASTER_QUESTIONS = [
 
 let questionPool = [];
 let progress = 0, totalSec = 0, stats = {c: 0, w: 0}, mode = 'free', timerInterval, audioCtx;
+let totalElapsedSeconds = 0; 
+let isGameOver = false;
 
 function initAudio() { if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
 
@@ -205,18 +207,21 @@ function transition(from, to) {
 
 function startGame(m) {
     mode = m;
+    isGameOver = false;
     questionPool = [...MASTER_QUESTIONS].sort(() => Math.random() - 0.5);
     transition('mode-screen', 'game-ui');
     
     if(mode === 'timed') {
-        totalSec = 15; // Zamana karşı 15 sn başlar
+        totalSec = 15; 
     } else {
-        totalSec = 0; // Serbest mod 0'dan başlar
+        totalSec = 0; 
     }
     
     document.getElementById('timer').textContent = totalSec + 's';
     
     timerInterval = setInterval(() => {
+        if(isGameOver) return;
+        totalElapsedSeconds++; 
         if(mode === 'timed') {
             totalSec--;
             if(totalSec <= 0) {
@@ -235,8 +240,14 @@ function startGame(m) {
 }
 
 function loadQ() {
+    if(isGameOver) return;
     if(progress >= 100) return end();
     if(questionPool.length === 0) questionPool = [...MASTER_QUESTIONS].sort(() => Math.random() - 0.5);
+
+    if(mode === 'timed') {
+        totalSec = 15;
+        document.getElementById('timer').textContent = totalSec + 's';
+    }
 
     const q = questionPool.pop();
     document.getElementById('q-el').textContent = q.q;
@@ -247,6 +258,11 @@ function loadQ() {
         const b = document.createElement('button');
         b.className = 'option-btn'; b.textContent = opt;
         b.onclick = () => {
+            if(isGameOver) return; 
+            
+            const allButtons = container.querySelectorAll('.option-btn');
+            allButtons.forEach(btn => btn.disabled = true);
+
             if(opt === q.a) {
                 b.classList.add('correct'); playSound(800, 'sine', 0.2); stats.c++; 
                 progress = Math.min(100, progress + 10);
@@ -265,9 +281,11 @@ function loadQ() {
 }
 
 function end() {
+    if(isGameOver) return;
+    isGameOver = true;
     clearInterval(timerInterval);
     transition('game-ui', 'end-screen');
-    document.getElementById('f-time').textContent = (mode === 'timed' ? (15 - totalSec) : totalSec) + 's';
+    document.getElementById('f-time').textContent = (mode === 'timed' ? totalElapsedSeconds : totalSec) + 's';
     document.getElementById('f-correct').textContent = stats.c;
     document.getElementById('f-wrong').textContent = stats.w;
     const ratio = Math.round((stats.c / (stats.c + stats.w)) * 100) || 0;
